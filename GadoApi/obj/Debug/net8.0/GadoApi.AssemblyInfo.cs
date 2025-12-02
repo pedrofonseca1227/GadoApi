@@ -10,12 +10,12 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("GadoApi.Tests")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("GadoApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ef94b6045888c197da7d98b63ae8132e9ec82862")]
-[assembly: System.Reflection.AssemblyProductAttribute("GadoApi.Tests")]
-[assembly: System.Reflection.AssemblyTitleAttribute("GadoApi.Tests")]
+[assembly: System.Reflection.AssemblyProductAttribute("GadoApi")]
+[assembly: System.Reflection.AssemblyTitleAttribute("GadoApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
 
 // Gerado pela classe WriteCodeFragment do MSBuild.
