@@ -34,7 +34,7 @@ jobs:
       - name: Test with coverage
         run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults
 
-      - name: Find coverage
+      - name: Find coverage file
         id: coverage
         shell: pwsh
         run: |
@@ -57,15 +57,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Necessário para rodar o ReportGenerator no Ubuntu
+      - name: Setup .NET 8 on Ubuntu
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
       - name: Download coverage artifact
         uses: actions/download-artifact@v4
         with:
           name: coverage
           path: coverage
 
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
       - name: Convert Cobertura to OpenCover
         run: |
-          dotnet tool install --global dotnet-reportgenerator-globaltool
           reportgenerator \
             -reports:"coverage/coverage.cobertura.xml" \
             -targetdir:"coverage_converted" \

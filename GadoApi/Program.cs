@@ -3,7 +3,6 @@ using GadoApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
 builder.Services.AddSingleton<IGadoRepository, GadoRepository>();
 builder.Services.AddScoped<IGadoService, GadoService>();
 
@@ -21,5 +20,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapControllers();
+
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();

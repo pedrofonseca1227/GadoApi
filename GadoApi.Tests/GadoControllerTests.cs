@@ -18,7 +18,7 @@ public class GadoControllerTests
     [Fact]
     public void Create_Should_Return_Created()
     {
-        var gado = new Gado { Identificacao = "Gado X" };
+        var gado = new Gado { Identificacao = "Gado 10" };
         var result = _controller.Create(gado);
 
         Assert.IsType<CreatedAtActionResult>(result);
