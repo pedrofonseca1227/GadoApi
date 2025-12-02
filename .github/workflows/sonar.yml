@@ -45,11 +45,17 @@ jobs:
         run: dotnet test --configuration Release --collect:"XPlat Code Coverage"
 
       - name: Convert coverage to opencover
+        shell: pwsh
         run: |
-          report=$(Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1).FullName
-          echo "FILE FOUND: $report"
+          $report = Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+          Write-Host "FILE FOUND: $($report.FullName)"
+          
           dotnet tool install --global dotnet-reportgenerator-globaltool
-          reportgenerator "-reports:$report" "-targetdir:coverage" "-reporttypes:opencover"
+          
+          reportgenerator `
+            "-reports:$($report.FullName)" `
+            "-targetdir:coverage" `
+            "-reporttypes:opencover"
 
       - name: End Sonar Analysis
         env:
