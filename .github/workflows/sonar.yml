@@ -1,5 +1,4 @@
 name: SonarCloud Analysis
-
 on:
   push:
     branches:
@@ -7,57 +6,50 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
-
-      - name: Setup Java 17
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: "zulu"
-          java-version: "17"
-
-      - name: Install Sonar Scanner
-        run: dotnet tool install --global dotnet-sonarscanner
-
-      - name: Begin Sonar Analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          dotnet-sonarscanner begin `
-            /k:"pedrofonseca1227_GadoApi" `
-            /o:"pedrofonseca1227" `
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
-            /d:sonar.cs.opencover.reportsPaths="**\coverage.opencover.xml"
-
-      - name: Test with Coverage
-        run: dotnet test --configuration Release --collect:"XPlat Code Coverage"
-
-      - name: Convert coverage to opencover
+          java-version: 17
+          distribution: 'zulu'
+      - name: Restore
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+      - name: Test with coverage
+        run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults
+      - name: Find coverage report
+        id: coverage
         shell: pwsh
         run: |
-          $report = Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
-          Write-Host "FILE FOUND: $($report.FullName)"
-          
+          $file = Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+          if (-not $file) { throw "coverage.cobertura.xml not found!" }
+          Write-Host "Found: $($file.FullName)"
+          echo "path=$($file.FullName)" >> $env:GITHUB_OUTPUT
+      - name: Convert Cobertura to OpenCover
+        shell: pwsh
+        run: |
           dotnet tool install --global dotnet-reportgenerator-globaltool
-          
           reportgenerator `
-            "-reports:$($report.FullName)" `
-            "-targetdir:coverage" `
-            "-reporttypes:opencover"
-
-      - name: End Sonar Analysis
+            -reports:"${{ steps.coverage.outputs.path }}" `
+            -targetdir:"coverage" `
+            -reporttypes:opencover
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        with:
+          args: >
+            -Dsonar.organization=pedrofonseca1227
+            -Dsonar.projectKey=pedrofonseca1227_GadoApi
+            -Dsonar.cs.opencover.reportsPaths=coverage/opencover.xml
