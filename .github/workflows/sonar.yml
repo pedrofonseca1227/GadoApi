@@ -34,14 +34,14 @@ jobs:
       - name: Prepare TestResults folder at repo root
         run: mkdir -p TestResults
 
-      - name: Test with coverage (Coverlet.MSBuild)
+      - name: Test with coverage (Coverlet MSBuild -> OpenCover)
         run: |
           dotnet test GadoApi.Tests/GadoApi.Tests.csproj \
             --configuration Release \
             --logger "trx;LogFileName=../TestResults/TestResults.trx" \
             /p:CollectCoverage=true \
-            /p:CoverletOutputFormat=cobertura \
-            /p:CoverletOutput=../TestResults/
+            /p:CoverletOutputFormat=opencover \
+            /p:CoverletOutput=../TestResults/coverage.opencover.xml
 
       - name: Show TestResults location and files
         run: |
@@ -50,7 +50,7 @@ jobs:
           echo "Listing repo-root TestResults:"
           ls -la TestResults || true
           echo "Find coverage and trx files:"
-          find . -name "coverage.cobertura.xml" -o -name "TestResults.trx" || true
+          find . -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" -o -name "TestResults.trx" || true
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
@@ -63,5 +63,5 @@ jobs:
             -Dsonar.sources=GadoApi
             -Dsonar.tests=GadoApi.Tests
             -Dsonar.cs.vstest.reportsPaths=TestResults/TestResults.trx
-            -Dsonar.cs.opencover.reportsPaths=TestResults/coverage.cobertura.xml
+            -Dsonar.cs.opencover.reportsPaths=TestResults/coverage.opencover.xml
             -Dsonar.exclusions=**/bin/**,**/obj/**
