@@ -2,13 +2,11 @@ name: SonarCloud Analysis
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   pull_request:
-    branches:
-      - main
 
 jobs:
+
   build:
     runs-on: ubuntu-latest
 
@@ -17,38 +15,50 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup .NET 8
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
 
-      - name: Install SonarScanner
-        run: dotnet tool install --global dotnet-sonarscanner
-
-      - name: Install Coverlet
-        run: dotnet tool install --global coverlet.console
-
-      - name: SonarCloud Begin
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          ~/.dotnet/tools/dotnet-sonarscanner begin \
-            /k:"pedrofonseca1227_GadoApi" \
-            /o:"pedrofonseca1227" \
-            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-            /d:sonar.cs.opencover.reportsPaths="coverage/opencover.xml"
+      - name: Restore
+        run: dotnet restore
 
       - name: Build
-        run: dotnet build --configuration Release
+        run: dotnet build --configuration Release --no-restore
 
-      - name: Run Tests + Coverage OpenCover
-        run: |
-          dotnet test GadoApi.Tests/GadoApi.Tests.csproj \
-            /p:CollectCoverage=true \
-            /p:CoverletOutput=coverage/opencover.xml \
-            /p:CoverletOutputFormat=opencover
+      - name: Run Tests with OpenCover
+        run: dotnet test --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./coverage.opencover.xml
 
-      - name: SonarCloud End
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.opencover.xml
+
+  sonarcloud:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          path: .
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ~/.dotnet/tools/dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+        with:
+          args: >
+            -Dsonar.organization=pedrofonseca1227
+            -Dsonar.projectKey=pedrofonseca1227_GadoApi
+            -Dsonar.sources=GadoApi
+            -Dsonar.tests=GadoApi.Tests
+            -Dsonar.cs.opencover.reportsPaths=coverage.opencover.xml
+            -Dsonar.exclusions=**/bin/**,**/obj/**
