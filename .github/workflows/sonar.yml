@@ -2,11 +2,12 @@ name: SonarCloud Analysis
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
 
 jobs:
-  sonarcloud:
+
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,38 +20,47 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Show environment / workspace
-        run: |
-          pwd
-          ls -la
-          ls -la GadoApi.Tests || true
-
-      - name: Restore
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
-
       - name: Prepare TestResults folder at repo root
         run: mkdir -p TestResults
 
-      - name: Test with coverage (Coverlet MSBuild -> OpenCover)
+      - name: Test with coverage (run inside test project)
+        working-directory: GadoApi.Tests
         run: |
-          dotnet test GadoApi.Tests/GadoApi.Tests.csproj \
+          mkdir -p TestResults
+          dotnet test GadoApi.Tests.csproj \
             --configuration Release \
             --logger "trx;LogFileName=../TestResults/TestResults.trx" \
             /p:CollectCoverage=true \
             /p:CoverletOutputFormat=opencover \
             /p:CoverletOutput=../TestResults/coverage.opencover.xml
 
-      - name: Show TestResults location and files
+      - name: Show TestResults files
         run: |
-          echo "Listing project folder:"
-          ls -la GadoApi.Tests || true
-          echo "Listing repo-root TestResults:"
+          echo "Repo-root TestResults:"
           ls -la TestResults || true
-          echo "Find coverage and trx files:"
-          find . -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" -o -name "TestResults.trx" || true
+          echo "Project TestResults:"
+          ls -la GadoApi.Tests/TestResults || true
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: TestResults/coverage.opencover.xml
+
+  sonarcloud:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          path: .
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
@@ -62,6 +72,6 @@ jobs:
             -Dsonar.projectKey=pedrofonseca1227_GadoApi
             -Dsonar.sources=GadoApi
             -Dsonar.tests=GadoApi.Tests
+            -Dsonar.cs.opencover.reportsPaths=coverage.opencover.xml
             -Dsonar.cs.vstest.reportsPaths=TestResults/TestResults.trx
-            -Dsonar.cs.opencover.reportsPaths=TestResults/coverage.opencover.xml
             -Dsonar.exclusions=**/bin/**,**/obj/**
