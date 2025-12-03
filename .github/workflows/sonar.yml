@@ -34,6 +34,9 @@ jobs:
             /p:CoverletOutputFormat=cobertura \
             /p:CoverletOutput=./TestResults/
 
+      - name: List coverage files
+        run: ls -la TestResults/ || echo "Nenhum arquivo encontrado"
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         env:
@@ -44,6 +47,6 @@ jobs:
             -Dsonar.projectKey=pedrofonseca1227_GadoApi
             -Dsonar.sources=GadoApi
             -Dsonar.tests=GadoApi.Tests
-            -Dsonar.cs.vstest.reportsPaths=TestResults.trx
+            -Dsonar.cs.vstest.reportsPaths=TestResults/TestResults.trx
             -Dsonar.cs.opencover.reportsPaths=TestResults/coverage.cobertura.xml
             -Dsonar.exclusions=**/bin/**,**/obj/**
