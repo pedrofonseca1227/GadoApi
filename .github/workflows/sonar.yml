@@ -20,56 +20,42 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Prepare TestResults folder
+      - name: Prepare TestResults folder at repo root
         run: mkdir -p TestResults
 
-      - name: Test with coverage (inside test project)
+      - name: Test with coverage (run inside test project)
         working-directory: GadoApi.Tests
         run: |
-          mkdir -p ../TestResults
           dotnet test GadoApi.Tests.csproj \
             --configuration Release \
             --logger "trx;LogFileName=../TestResults/TestResults.trx" \
             /p:CollectCoverage=true \
             /p:CoverletOutputFormat=opencover \
-            /p:CoverletOutput=../TestResults/coverage.opencover.xml \
-            /p:DeterministicSourcePaths=true \
-            /p:UseSourceLink=true
+            /p:CoverletOutput=../TestResults/coverage.opencover.xml
+
+      - name: Show TestResults files
+        run: ls -la TestResults
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
           name: coverage
-          path: TestResults/coverage.opencover.xml
+          path: TestResults
 
   sonarcloud:
     needs: build
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout repository (same workspace as build)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-        
+      - uses: actions/checkout@v4
+
       - name: Download coverage
         uses: actions/download-artifact@v4
         with:
           name: coverage
           path: TestResults
-        
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization=pedrofonseca1227
-            -Dsonar.projectKey=pedrofonseca1227_GadoApi
-            -Dsonar.sources=.
-            -Dsonar.tests=GadoApi.Tests
-            -Dsonar.test.inclusions=GadoApi.Tests/**/*.cs
-            -Dsonar.cs.opencover.reportsPaths=TestResults/coverage.opencover.xml
-            -Dsonar.cs.vstest.reportsPaths=TestResults/TestResults.trx
-            -Dsonar.exclusions=**/bin/**,**/obj/**
-        
