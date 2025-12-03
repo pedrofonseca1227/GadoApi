@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GadoApi.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bb73115773998e876f07620c7dc73fc2ba333425")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f04a99ae6be81ffbae44fd70390c022bd7312129")]
 [assembly: System.Reflection.AssemblyProductAttribute("GadoApi.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GadoApi.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
