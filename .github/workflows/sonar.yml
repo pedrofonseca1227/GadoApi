@@ -26,13 +26,15 @@ jobs:
       - name: Test with coverage (inside test project)
         working-directory: GadoApi.Tests
         run: |
-          mkdir -p TestResults
+          mkdir -p ../TestResults
           dotnet test GadoApi.Tests.csproj \
             --configuration Release \
             --logger "trx;LogFileName=../TestResults/TestResults.trx" \
             /p:CollectCoverage=true \
             /p:CoverletOutputFormat=opencover \
-            /p:CoverletOutput=../TestResults/coverage.opencover.xml
+            /p:CoverletOutput=../TestResults/coverage.opencover.xml \
+            /p:DeterministicSourcePaths=true \
+            /p:UseSourceLink=true
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
@@ -63,10 +65,9 @@ jobs:
           args: >
             -Dsonar.organization=pedrofonseca1227
             -Dsonar.projectKey=pedrofonseca1227_GadoApi
-            -Dsonar.sources=GadoApi
+            -Dsonar.sources=.
             -Dsonar.tests=GadoApi.Tests
             -Dsonar.test.inclusions=GadoApi.Tests/**/*.cs
             -Dsonar.cs.opencover.reportsPaths=TestResults/coverage.opencover.xml
             -Dsonar.cs.vstest.reportsPaths=TestResults/TestResults.trx
             -Dsonar.exclusions=**/bin/**,**/obj/**
-
