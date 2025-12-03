@@ -22,32 +22,31 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Install Coverlet
+        run: dotnet tool install --global coverlet.console
 
       - name: SonarCloud Begin
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          dotnet tool install --global dotnet-sonarscanner
           ~/.dotnet/tools/dotnet-sonarscanner begin \
             /k:"pedrofonseca1227_GadoApi" \
             /o:"pedrofonseca1227" \
             /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-            /d:sonar.cs.opencover.reportsPaths="coverage_converted/opencover.xml"
+            /d:sonar.cs.opencover.reportsPaths="coverage/opencover.xml"
 
       - name: Build
         run: dotnet build --configuration Release
 
-      - name: Test with Coverage
-        run: dotnet test --configuration Release --collect:"XPlat Code Coverage"
-
-      - name: Convert coverage to OpenCover
+      - name: Run Tests + Coverage OpenCover
         run: |
-          reportgenerator \
-            -reports:"**/coverage.cobertura.xml" \
-            -targetdir:"coverage_converted" \
-            -reporttypes:opencover
+          dotnet test GadoApi.Tests/GadoApi.Tests.csproj \
+            /p:CollectCoverage=true \
+            /p:CoverletOutput=coverage/opencover.xml \
+            /p:CoverletOutputFormat=opencover
 
       - name: SonarCloud End
         env:
