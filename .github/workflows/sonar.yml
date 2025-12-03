@@ -28,8 +28,10 @@ jobs:
 
       - name: Test with coverage
         run: dotnet test GadoApi.Tests/GadoApi.Tests.csproj \
-               --configuration Release \
-               --collect:"XPlat Code Coverage"
+              --configuration Release \
+              /p:CollectCoverage=true \
+              /p:CoverletOutputFormat=cobertura \
+              /p:CoverletOutput=./TestResults/
 
       - name: Find cobertura file
         id: coverage
