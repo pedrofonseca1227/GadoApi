@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  sonarcloud:
     runs-on: ubuntu-latest
 
     steps:
@@ -34,26 +34,6 @@ jobs:
             /p:CoverletOutputFormat=cobertura \
             /p:CoverletOutput=./TestResults/
 
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: TestResults/
-
-  sonarcloud:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Download coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage
-
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         env:
@@ -65,5 +45,5 @@ jobs:
             -Dsonar.sources=GadoApi
             -Dsonar.tests=GadoApi.Tests
             -Dsonar.cs.vstest.reportsPaths=TestResults.trx
-            -Dsonar.cs.opencover.reportsPaths=coverage.cobertura.xml
+            -Dsonar.cs.opencover.reportsPaths=TestResults/coverage.cobertura.xml
             -Dsonar.exclusions=**/bin/**,**/obj/**
