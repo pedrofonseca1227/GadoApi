@@ -68,10 +68,13 @@ jobs:
 
       - name: Convert Cobertura -> OpenCover
         run: |
+          COV=$(find coverage -name "coverage.cobertura.xml")
+          echo "Coverage file found at: $COV"
           reportgenerator \
-            -reports:"coverage/coverage.cobertura.xml" \
+            -reports:"$COV" \
             -targetdir:"coverage_converted" \
             -reporttypes:opencover
+
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
