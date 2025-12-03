@@ -6,7 +6,6 @@ on:
   pull_request:
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
 
@@ -29,21 +28,16 @@ jobs:
       - name: Test with coverage
         run: dotnet test GadoApi.Tests/GadoApi.Tests.csproj \
               --configuration Release \
+              --logger "trx;LogFileName=TestResults.trx" \
               /p:CollectCoverage=true \
               /p:CoverletOutputFormat=cobertura \
               /p:CoverletOutput=./TestResults/
-
-      - name: Find cobertura file
-        id: coverage
-        run: |
-          FILE=$(find . -name "coverage.cobertura.xml" | head -n 1)
-          echo "file=$FILE" >> $GITHUB_OUTPUT
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
           name: coverage
-          path: ${{ steps.coverage.outputs.file }}
+          path: TestResults/
 
   sonarcloud:
     needs: build
@@ -51,12 +45,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download coverage
         uses: actions/download-artifact@v4
         with:
           name: coverage
-          path: .
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
@@ -68,6 +63,6 @@ jobs:
             -Dsonar.projectKey=pedrofonseca1227_GadoApi
             -Dsonar.sources=GadoApi
             -Dsonar.tests=GadoApi.Tests
-            -Dsonar.cs.vstest.reportsPaths=**/*.trx
-            -Dsonar.cs.opencover.reportsPaths=**/coverage.cobertura.xml
+            -Dsonar.cs.vstest.reportsPaths=TestResults.trx
+            -Dsonar.cs.opencover.reportsPaths=coverage.cobertura.xml
             -Dsonar.exclusions=**/bin/**,**/obj/**
