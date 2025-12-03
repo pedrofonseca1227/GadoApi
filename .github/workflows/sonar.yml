@@ -19,23 +19,38 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      - name: Show environment / workspace
+        run: |
+          pwd
+          ls -la
+          ls -la GadoApi.Tests || true
+
       - name: Restore
         run: dotnet restore
 
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Test with coverage
+      - name: Prepare TestResults folder at repo root
+        run: mkdir -p TestResults
+
+      - name: Test with coverage (Coverlet.MSBuild)
         run: |
           dotnet test GadoApi.Tests/GadoApi.Tests.csproj \
             --configuration Release \
-            --logger "trx;LogFileName=TestResults.trx" \
+            --logger "trx;LogFileName=../TestResults/TestResults.trx" \
             /p:CollectCoverage=true \
             /p:CoverletOutputFormat=cobertura \
-            /p:CoverletOutput=./TestResults/
+            /p:CoverletOutput=../TestResults/
 
-      - name: List coverage files
-        run: find . -name "coverage.cobertura.xml" -o -name "TestResults.trx"
+      - name: Show TestResults location and files
+        run: |
+          echo "Listing project folder:"
+          ls -la GadoApi.Tests || true
+          echo "Listing repo-root TestResults:"
+          ls -la TestResults || true
+          echo "Find coverage and trx files:"
+          find . -name "coverage.cobertura.xml" -o -name "TestResults.trx" || true
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
@@ -47,6 +62,6 @@ jobs:
             -Dsonar.projectKey=pedrofonseca1227_GadoApi
             -Dsonar.sources=GadoApi
             -Dsonar.tests=GadoApi.Tests
-            -Dsonar.cs.vstest.reportsPaths=GadoApi.Tests/TestResults/TestResults.trx
-            -Dsonar.cs.opencover.reportsPaths=GadoApi.Tests/TestResults/coverage.cobertura.xml
+            -Dsonar.cs.vstest.reportsPaths=TestResults/TestResults.trx
+            -Dsonar.cs.opencover.reportsPaths=TestResults/coverage.cobertura.xml
             -Dsonar.exclusions=**/bin/**,**/obj/**
