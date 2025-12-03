@@ -20,10 +20,10 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Prepare TestResults folder at repo root
+      - name: Prepare TestResults folder
         run: mkdir -p TestResults
 
-      - name: Test with coverage (run inside test project)
+      - name: Test with coverage (inside test project)
         working-directory: GadoApi.Tests
         run: |
           mkdir -p TestResults
@@ -33,13 +33,6 @@ jobs:
             /p:CollectCoverage=true \
             /p:CoverletOutputFormat=opencover \
             /p:CoverletOutput=../TestResults/coverage.opencover.xml
-
-      - name: Show TestResults files
-        run: |
-          echo "Repo-root TestResults:"
-          ls -la TestResults || true
-          echo "Project TestResults:"
-          ls -la GadoApi.Tests/TestResults || true
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
@@ -70,8 +63,9 @@ jobs:
           args: >
             -Dsonar.organization=pedrofonseca1227
             -Dsonar.projectKey=pedrofonseca1227_GadoApi
-            -Dsonar.sources=GadoApi
+            -Dsonar.sources=.
             -Dsonar.tests=GadoApi.Tests
+            -Dsonar.test.inclusions=GadoApi.Tests/**/*.cs
             -Dsonar.cs.opencover.reportsPaths=coverage.opencover.xml
             -Dsonar.cs.vstest.reportsPaths=TestResults/TestResults.trx
             -Dsonar.exclusions=**/bin/**,**/obj/**
