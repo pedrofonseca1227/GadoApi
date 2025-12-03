@@ -43,18 +43,18 @@ jobs:
   sonarcloud:
     needs: build
     runs-on: ubuntu-latest
-
+    
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
+        
       - name: Download coverage
         uses: actions/download-artifact@v4
         with:
           name: coverage
-          path: .
-
+          path: TestResults
+        
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         env:
@@ -63,9 +63,10 @@ jobs:
           args: >
             -Dsonar.organization=pedrofonseca1227
             -Dsonar.projectKey=pedrofonseca1227_GadoApi
-            -Dsonar.sources=.
+            -Dsonar.sources=GadoApi
             -Dsonar.tests=GadoApi.Tests
             -Dsonar.test.inclusions=GadoApi.Tests/**/*.cs
-            -Dsonar.cs.opencover.reportsPaths=coverage.opencover.xml
+            -Dsonar.cs.opencover.reportsPaths=TestResults/coverage.opencover.xml
             -Dsonar.cs.vstest.reportsPaths=TestResults/TestResults.trx
             -Dsonar.exclusions=**/bin/**,**/obj/**
+
