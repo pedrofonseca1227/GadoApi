@@ -30,7 +30,6 @@ jobs:
           dotnet test GadoApi.Tests.csproj \
             --configuration Release \
             --logger "trx;LogFileName=../TestResults/TestResults.trx" \
-            --logger "XPlat Code Coverage" \
             /p:CollectCoverage=true \
             /p:CoverletOutputFormat=opencover \
             /p:CoverletOutput=../TestResults/coverage.opencover.xml
